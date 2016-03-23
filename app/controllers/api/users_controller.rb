@@ -1,14 +1,23 @@
 class Api::UsersController < ApplicationController
 
-def index
-  @users=User.all
-end
-
-def show
-  @user=User.find_by id: params[:id]
-end
+  before_action :doorkeeper_authorize!
+  protect_from_forgery with: :null_session
 
 
+  def me
+    @user = current_resource_owner
+    render "api/registrations/user"
+  end
 
+  def delete
+    @user = current_resource_owner
+    @user.destroy
+    head :ok
+  end
 
+  private
+
+  def current_resource_owner
+    User.find(doorkeeper_token.resource_owner_id) if doorkeeper_token
+  end
 end
